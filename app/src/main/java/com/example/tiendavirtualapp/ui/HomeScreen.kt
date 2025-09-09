@@ -1,4 +1,4 @@
-package com.example.tiendavirtualapp.ui.theme
+package com.example.tiendavirtualapp.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -37,6 +37,8 @@ fun HomeScreen(navController: NavController) {
             Button(onClick = { navController.navigate("admin") }) {
                 Text("Administrar productos ⚙️")
             }
+
+            
         }
     }
 }

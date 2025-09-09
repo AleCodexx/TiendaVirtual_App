@@ -1,9 +1,8 @@
 package com.example.tiendavirtualapp.model
 
-// Más adelante lo usaremos para simular productos
 data class Producto(
-    val id: Int,
+    val id: String,
     val nombre: String,
-    val precio: Double,
-    val descripcion: String
+    val descripcion: String,
+    val precio: Double
 )

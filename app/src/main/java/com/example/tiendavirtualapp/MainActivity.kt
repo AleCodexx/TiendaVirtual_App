@@ -7,9 +7,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.tiendavirtualapp.ui.theme.AdminScreen
-import com.example.tiendavirtualapp.ui.theme.CatalogScreen
-import com.example.tiendavirtualapp.ui.theme.HomeScreen
+import com.example.tiendavirtualapp.ui.AdminScreen
+import com.example.tiendavirtualapp.ui.CatalogScreen
+import com.example.tiendavirtualapp.ui.HomeScreen
 import com.example.tiendavirtualapp.ui.theme.TiendaVirtualAppTheme
 
 class MainActivity : ComponentActivity() {
