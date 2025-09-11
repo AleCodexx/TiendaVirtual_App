@@ -25,7 +25,7 @@ fun LoginScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Iniciar sesión 🔑") }) }
+        topBar = { TopAppBar(title = { Text("Iniciar sesión") }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -37,7 +37,7 @@ fun LoginScreen(navController: NavController) {
         ) {
             // 🔹 Header
             Text(
-                text = "Bienvenido de nuevo 👋",
+                text = "Bienvenido de nuevo",
                 style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(8.dp))

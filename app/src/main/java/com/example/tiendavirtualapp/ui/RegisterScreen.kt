@@ -27,7 +27,7 @@ fun RegisterScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Registro ✍️") }) }
+        topBar = { TopAppBar(title = { Text("Registro") }) }
     ) { padding ->
         Column(
             modifier = Modifier
