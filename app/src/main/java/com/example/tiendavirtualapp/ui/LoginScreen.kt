@@ -1,5 +1,6 @@
 package com.example.tiendavirtualapp.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -9,20 +10,25 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.tiendavirtualapp.data.FakeUserDataSource
 import com.example.tiendavirtualapp.data.SessionManager
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Iniciar sesión") }) }
@@ -35,20 +41,15 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 🔹 Header
-            Text(
-                text = "Bienvenido de nuevo",
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Text("Bienvenido de nuevo", style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Ingresa tus credenciales para continuar",
+                "Ingresa tus credenciales para continuar",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔹 Input correo
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -58,7 +59,6 @@ fun LoginScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Input contraseña
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -75,31 +75,33 @@ fun LoginScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 🔹 Botón ingresar
             Button(
                 onClick = {
-                    val user = FakeUserDataSource.users.find {
-                        it.email == email && it.password == password
-                    }
+                    if (email.isNotBlank() && password.isNotBlank()) {
+                        isLoading = true
+                        auth.signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful) {
+                                    // ✅ Guardamos sesión
+                                    SessionManager.saveUserSession(context, email)
 
-                    if (user != null) {
-                        SessionManager.currentUser = user
-                        errorMessage = null
-                        if (user.role == "admin") {
-                            navController.navigate("admin")
-                        } else {
-                            navController.navigate("catalog")
-                        }
+                                    navController.navigate("catalog") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    errorMessage = "❌ Credenciales incorrectas"
+                                }
+                            }
                     } else {
-                        errorMessage = "❌ Credenciales incorrectas"
+                        errorMessage = "Completa todos los campos"
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Ingresar")
+                Text(if (isLoading) "Cargando..." else "Ingresar")
             }
 
-            // 🔹 Mensaje de error
             errorMessage?.let {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
@@ -107,20 +109,19 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Links de acciones
             Text(
-                text = "¿Olvidaste tu contraseña?",
+                "¿Olvidaste tu contraseña?",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
-                    // Aquí más adelante puedes navegar a recuperar contraseña
+                    // 🚀 Aquí podrías implementar recuperación de contraseña
                 }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "¿No tienes cuenta? Regístrate aquí",
+                "¿No tienes cuenta? Regístrate aquí",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {

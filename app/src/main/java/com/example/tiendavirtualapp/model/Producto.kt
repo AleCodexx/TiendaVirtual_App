@@ -1,10 +1,10 @@
 package com.example.tiendavirtualapp.model
 
-// Más adelante lo usaremos para simular productos
 data class Producto(
-    val id: Int,
-    val nombre: String,
-    val precio: Double,
-    val descripcion: String,
-    val categoria: String
+    val id: String = "",          // Firebase usa String como key (evitamos Int fijo)
+    val nombre: String = "",
+    val precio: Double = 0.0,
+    val descripcion: String = "",
+    val categoria: String = "",
+    val imagenUrl: String = ""    // 👈 conviene agregarlo para mostrar fotos en el catálogo
 )

@@ -11,7 +11,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tiendavirtualapp.navigation.BottomNavigationBar
-import com.example.tiendavirtualapp.ui.AdminScreen
 import com.example.tiendavirtualapp.ui.CartScreen
 import com.example.tiendavirtualapp.ui.CatalogScreen
 import com.example.tiendavirtualapp.ui.CategoriesScreen
@@ -19,7 +18,7 @@ import com.example.tiendavirtualapp.ui.LoginScreen
 import com.example.tiendavirtualapp.ui.ProfileScreen
 import com.example.tiendavirtualapp.ui.RegisterScreen
 import com.example.tiendavirtualapp.ui.theme.TiendaVirtualAppTheme
-
+import com.example.tiendavirtualapp.utils.DataUploader
 
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +26,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            //DataUploader.insertarProductosIniciales()
             TiendaVirtualAppTheme {
                 val navController = rememberNavController()
 
@@ -44,7 +44,6 @@ class MainActivity : ComponentActivity() {
                         composable("categories") { CategoriesScreen() }
                         composable("cart") { CartScreen() }
                         composable("profile") { ProfileScreen(navController) }
-                        composable("admin") { AdminScreen() } // acceso especial
                         composable("login") { LoginScreen(navController) }
                         composable("register") { RegisterScreen(navController) }
                     }

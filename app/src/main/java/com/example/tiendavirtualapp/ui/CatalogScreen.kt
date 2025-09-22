@@ -11,14 +11,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.tiendavirtualapp.data.FakeDataSource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tiendavirtualapp.model.Producto
+import com.example.tiendavirtualapp.viewmodel.ProductoViewModel
+import com.example.tiendavirtualapp.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun CatalogScreen() {
-    val productos = FakeDataSource.productos
+fun CatalogScreen(
+    productoViewModel: ProductoViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel()
+) {
+    val productos by productoViewModel.productos.collectAsState()
     var query by remember { mutableStateOf("") }
+
     val filtered = productos.filter {
         it.nombre.contains(query, ignoreCase = true) ||
                 it.descripcion.contains(query, ignoreCase = true)
@@ -52,14 +58,20 @@ fun CatalogScreen() {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(filtered) { producto ->
-                ProductoItem(producto)
+                ProductoItem(
+                    producto = producto,
+                    onAddToCart = { cartViewModel.addToCart(it) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun ProductoItem(producto: Producto) {
+fun ProductoItem(
+    producto: Producto,
+    onAddToCart: (Producto) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -69,13 +81,12 @@ fun ProductoItem(producto: Producto) {
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // Aquí podrías poner una imagen de producto con Coil o painterResource
+            // Imagen placeholder
             Box(
                 modifier = Modifier
                     .height(120.dp)
                     .fillMaxWidth()
             ) {
-                // Imagen simulada (placeholder)
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
@@ -99,7 +110,7 @@ fun ProductoItem(producto: Producto) {
                 )
             )
             Button(
-                onClick = { },
+                onClick = { onAddToCart(producto) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.small
             ) {

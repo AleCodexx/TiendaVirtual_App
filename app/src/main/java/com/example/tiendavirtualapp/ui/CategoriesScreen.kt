@@ -14,35 +14,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.tiendavirtualapp.data.FakeDataSource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tiendavirtualapp.model.Producto
+import com.example.tiendavirtualapp.viewmodel.ProductoViewModel
 
 data class Categoria(val nombre: String)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun CategoriesScreen() {
+fun CategoriesScreen(viewModel: ProductoViewModel = viewModel()) {
+    val productos by viewModel.productos.collectAsState()
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
-    val categorias = listOf(
-        Categoria("Electrónica"),
-        Categoria("Celulares"),
-        Categoria("Ropa y accesorios"),
-        Categoria("Calzado"),
-        Categoria("Juguetes"),
-        Categoria("Deporte y aire libre"),
-        Categoria("Belleza y salud"),
-        Categoria("Hogar y cocina"),
-        Categoria("Automotriz"),
-    )
+    // 🔹 Creamos categorías dinámicamente desde productos
+    val categorias = productos.map { it.categoria }.distinct().map { Categoria(it) }
 
+    // 🔹 Filtro por búsqueda
     val filtered = categorias.filter {
         it.nombre.contains(query, ignoreCase = true)
     }
 
+    // 🔹 Productos de la categoría seleccionada
     val productosFiltrados: List<Producto> = selectedCategory?.let { cat ->
-        FakeDataSource.productos.filter { it.categoria.equals(cat, ignoreCase = true) }
+        productos.filter { it.categoria.equals(cat, ignoreCase = true) }
     } ?: emptyList()
 
     Scaffold(
@@ -72,7 +67,7 @@ fun CategoriesScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .weight(1f), // ocupa parte superior
+                    .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -84,7 +79,7 @@ fun CategoriesScreen() {
                 }
             }
 
-            // 🔹 Productos relacionados
+            // 🔹 Productos de la categoría
             if (selectedCategory != null) {
                 Text(
                     text = "Productos en ${selectedCategory}",
@@ -107,7 +102,6 @@ fun CategoriesScreen() {
                                 Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
                                 Text(producto.descripcion, style = MaterialTheme.typography.bodySmall)
                                 Text("S/ ${producto.precio}", style = MaterialTheme.typography.bodyMedium)
-
                             }
                         }
                     }
@@ -126,7 +120,6 @@ fun CategoriaCircle(nombre: String, onClick: () -> Unit) {
             .padding(4.dp)
             .clickable { onClick() }
     ) {
-        // Círculo placeholder
         Surface(
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),

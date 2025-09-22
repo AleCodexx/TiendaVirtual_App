@@ -1,22 +1,45 @@
 package com.example.tiendavirtualapp.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.data.SessionManager
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController) {
-    val user = SessionManager.currentUser
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+    val userEmail = SessionManager.getUserEmail(context)
+
+    var nombre by remember { mutableStateOf("Cargando...") }
+
+    // 🔹 Traemos nombre del cliente desde Firebase Realtime Database
+    LaunchedEffect(userEmail) {
+        val uid = auth.currentUser?.uid
+        if (uid != null) {
+            val ref = FirebaseDatabase.getInstance().getReference("clientes").child(uid)
+            ref.get().addOnSuccessListener { snapshot ->
+                nombre = snapshot.child("nombre").getValue(String::class.java) ?: "Usuario"
+            }.addOnFailureListener {
+                nombre = "Usuario"
+            }
+        } else {
+            nombre = "Invitado"
+        }
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Mi Perfil 👤") }) }
@@ -46,53 +69,40 @@ fun ProfileScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = user?.email ?: "Invitado",
+                        text = nombre,
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    // 🔹 Rol del usuario (badge)
-                    user?.let {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (it.role == "admin") "Administrador" else "Cliente",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (it.role == "admin")
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    Color.Gray
-                            )
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = userEmail ?: "Invitado",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Opciones
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (user != null) {
-                    if (user.role == "admin") {
-                        // Solo para admin
-                        ProfileOption("Administrar productos ⚙️") {
-                            navController.navigate("admin")
-                        }
-                    } else {
-                        // Solo para usuarios normales
-                        ProfileOption("Mis pedidos")
-                        ProfileOption("Direcciones")
-                        ProfileOption("Métodos de pago")
-                    }
+                if (userEmail != null) {
+                    ProfileOption("Mis pedidos")
+                    ProfileOption("Direcciones")
+                    ProfileOption("Métodos de pago")
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Button(
                         onClick = {
-                            SessionManager.currentUser = null
+                            auth.signOut()
+                            SessionManager.logout(context)
+                            Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
                             navController.navigate("login") {
                                 popUpTo("catalog") { inclusive = true }
                             }
@@ -119,7 +129,6 @@ fun ProfileScreen(navController: NavController) {
         }
     }
 }
-
 
 @Composable
 fun ProfileOption(title: String, onClick: () -> Unit = {}) {
