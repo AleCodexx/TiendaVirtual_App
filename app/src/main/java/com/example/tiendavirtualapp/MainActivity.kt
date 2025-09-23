@@ -19,6 +19,9 @@ import com.example.tiendavirtualapp.ui.ProfileScreen
 import com.example.tiendavirtualapp.ui.RegisterScreen
 import com.example.tiendavirtualapp.ui.theme.TiendaVirtualAppTheme
 import com.example.tiendavirtualapp.utils.DataUploader
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.tiendavirtualapp.viewmodel.CartViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -29,10 +32,17 @@ class MainActivity : ComponentActivity() {
             //DataUploader.insertarProductosIniciales()
             TiendaVirtualAppTheme {
                 val navController = rememberNavController()
+                val cartViewModel: CartViewModel = viewModel()
 
                 Scaffold(
                     bottomBar = {
-                        BottomNavigationBar(navController)
+                        // Solo mostrar la barra si la ruta actual NO es detalle/{id}
+                        val navBackStackEntry = navController.currentBackStackEntryAsState().value
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        val shouldHideBar = currentRoute?.startsWith("detalle") == true
+                        if (!shouldHideBar) {
+                            BottomNavigationBar(navController)
+                        }
                     }
                 ) { padding ->
                     NavHost(
@@ -40,12 +50,20 @@ class MainActivity : ComponentActivity() {
                         startDestination = "catalog",
                         modifier = Modifier.padding(padding)
                     ) {
-                        composable("catalog") { CatalogScreen() }
+                        composable("catalog") { CatalogScreen(navController, cartViewModel = cartViewModel) }
                         composable("categories") { CategoriesScreen() }
-                        composable("cart") { CartScreen() }
+                        composable("cart") { CartScreen(cartViewModel = cartViewModel) }
                         composable("profile") { ProfileScreen(navController) }
                         composable("login") { LoginScreen(navController) }
                         composable("register") { RegisterScreen(navController) }
+                        composable("detalle/{id}") { backStackEntry ->
+                            val id = backStackEntry.arguments?.getString("id")
+                            com.example.tiendavirtualapp.ui.ProductDetailScreen(
+                                productId = id,
+                                navController = navController,
+                                cartViewModel = cartViewModel
+                            )
+                        }
                     }
                 }
             }

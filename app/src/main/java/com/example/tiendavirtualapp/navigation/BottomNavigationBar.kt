@@ -23,6 +23,9 @@ fun BottomNavigationBar(navController: NavController) {
         val navBackStackEntry = navController.currentBackStackEntryAsState().value
         val currentRoute = navBackStackEntry?.destination?.route
 
+        val shouldHideBar = currentRoute?.startsWith("detalle") == true
+        if (shouldHideBar) return@NavigationBar
+
         items.forEach { item ->
             NavigationBarItem(
                 icon = { Icon(item.icon, contentDescription = item.label) },

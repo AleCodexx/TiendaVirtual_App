@@ -15,6 +15,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
 import com.example.tiendavirtualapp.R
 import com.example.tiendavirtualapp.model.Producto
 import com.example.tiendavirtualapp.viewmodel.CartViewModel
@@ -87,7 +91,9 @@ fun CartScreen(cartViewModel: CartViewModel = viewModel()) {
 @Composable
 fun CartItemRow(producto: Producto, onRemove: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -98,10 +104,19 @@ fun CartItemRow(producto: Producto, onRemove: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            AsyncImage(
+                model = producto.imagenUrl,
+                contentDescription = producto.nombre,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+            Spacer(modifier = Modifier.width(12.dp))
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(producto.nombre, fontWeight = FontWeight.Bold)
+                Text(producto.nombre, fontWeight = FontWeight.Bold, maxLines = 2)
                 Text("S/ ${producto.precio}", color = MaterialTheme.colorScheme.primary)
             }
             Spacer(modifier = Modifier.width(12.dp))
