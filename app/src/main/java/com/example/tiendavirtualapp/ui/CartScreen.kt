@@ -18,14 +18,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.Dp
+import androidx.navigation.NavController
 import com.example.tiendavirtualapp.R
 import com.example.tiendavirtualapp.model.Producto
 import com.example.tiendavirtualapp.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(cartViewModel: CartViewModel = viewModel()) {
+fun CartScreen(cartViewModel: CartViewModel = viewModel(), navController: NavController? = null) {
     val cartItems by cartViewModel.cartItems.collectAsState()
 
     Scaffold(
@@ -75,9 +75,10 @@ fun CartScreen(cartViewModel: CartViewModel = viewModel()) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
-                            onClick = { /* 🚀 Aquí irá el proceso de compra */ },
+                            onClick = { navController?.navigate("checkout") },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(8.dp),
+                            enabled = cartItems.isNotEmpty()
                         ) {
                             Text("Finalizar compra")
                         }

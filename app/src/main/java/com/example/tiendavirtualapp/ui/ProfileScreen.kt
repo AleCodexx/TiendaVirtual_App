@@ -14,25 +14,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.data.SessionManager
+import com.example.tiendavirtualapp.viewmodel.CartViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, cartViewModel: CartViewModel = viewModel()) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val userEmail = SessionManager.getUserEmail(context)
-
     var nombre by remember { mutableStateOf("Cargando...") }
 
-    // 🔹 Traemos nombre del cliente desde Firebase Realtime Database
+    // 🔹 Traemos nombre del cliente desde Firestore
     LaunchedEffect(userEmail) {
         val uid = auth.currentUser?.uid
         if (uid != null) {
-            val ref = FirebaseDatabase.getInstance().getReference("clientes").child(uid)
+            val ref = FirebaseFirestore.getInstance().collection("clientes").document(uid)
             ref.get().addOnSuccessListener { snapshot ->
-                nombre = snapshot.child("nombre").getValue(String::class.java) ?: "Usuario"
+                nombre = snapshot.getString("nombre") ?: "Usuario"
             }.addOnFailureListener {
                 nombre = "Usuario"
             }
@@ -92,8 +93,12 @@ fun ProfileScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (userEmail != null) {
-                    ProfileOption("Mis pedidos")
-                    ProfileOption("Direcciones")
+                    ProfileOption("Mis pedidos") {
+                        navController.navigate("orders")
+                    }
+                    ProfileOption("Direcciones") {
+                        navController.navigate("address_list")
+                    }
                     ProfileOption("Métodos de pago")
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -101,6 +106,7 @@ fun ProfileScreen(navController: NavController) {
                     Button(
                         onClick = {
                             auth.signOut()
+                            cartViewModel.onUserChanged() // Limpia el carrito al cerrar sesión
                             SessionManager.logout(context)
                             Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
                             navController.navigate("login") {

@@ -21,7 +21,12 @@ import com.example.tiendavirtualapp.ui.theme.TiendaVirtualAppTheme
 import com.example.tiendavirtualapp.utils.DataUploader
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.tiendavirtualapp.ui.CheckoutScreen
 import com.example.tiendavirtualapp.viewmodel.CartViewModel
+import com.example.tiendavirtualapp.ui.AddressListScreen
+import com.example.tiendavirtualapp.ui.AddressFormScreen
+import com.example.tiendavirtualapp.ui.OrdersScreen
+import com.example.tiendavirtualapp.ui.OrderDetailScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -36,7 +41,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        // Solo mostrar la barra si la ruta actual NO es detalle/{id}
+
                         val navBackStackEntry = navController.currentBackStackEntryAsState().value
                         val currentRoute = navBackStackEntry?.destination?.route
                         val shouldHideBar = currentRoute?.startsWith("detalle") == true
@@ -52,7 +57,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("catalog") { CatalogScreen(navController, cartViewModel = cartViewModel) }
                         composable("categories") { CategoriesScreen() }
-                        composable("cart") { CartScreen(cartViewModel = cartViewModel) }
+                        composable("cart") { CartScreen(cartViewModel = cartViewModel, navController = navController) }
                         composable("profile") { ProfileScreen(navController) }
                         composable("login") { LoginScreen(navController) }
                         composable("register") { RegisterScreen(navController) }
@@ -63,6 +68,14 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 cartViewModel = cartViewModel
                             )
+                        }
+                        composable("checkout") { CheckoutScreen(navController, cartViewModel = cartViewModel) }
+                        composable("address_list") { AddressListScreen(navController) }
+                        composable("address_form") { AddressFormScreen(navController) }
+                        composable("orders") { OrdersScreen(navController) }
+                        composable("order_detail/{id}") { backStackEntry ->
+                            val id = backStackEntry.arguments?.getString("id")
+                            OrderDetailScreen(navController, orderId = id)
                         }
                     }
                 }

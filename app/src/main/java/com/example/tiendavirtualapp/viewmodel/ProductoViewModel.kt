@@ -3,7 +3,7 @@ package com.example.tiendavirtualapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tiendavirtualapp.model.Producto
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,15 +19,16 @@ class ProductoViewModel : ViewModel() {
 
     private fun cargarProductos() {
         viewModelScope.launch {
-            val dbRef = FirebaseDatabase.getInstance().getReference("productos")
-            dbRef.get().addOnSuccessListener { snapshot ->
-                val lista = mutableListOf<Producto>()
-                for (item in snapshot.children) {
-                    val producto = item.getValue(Producto::class.java)
-                    producto?.let { lista.add(it) }
+            val db = FirebaseFirestore.getInstance()
+            db.collection("productos").get()
+                .addOnSuccessListener { result ->
+                    val lista = mutableListOf<Producto>()
+                    for (document in result) {
+                        val producto = document.toObject(Producto::class.java)
+                        lista.add(producto)
+                    }
+                    _productos.value = lista
                 }
-                _productos.value = lista
-            }
         }
     }
 }

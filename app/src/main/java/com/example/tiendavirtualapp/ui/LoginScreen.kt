@@ -16,11 +16,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.data.SessionManager
+import com.example.tiendavirtualapp.viewmodel.CartViewModel
 import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, cartViewModel: CartViewModel = viewModel()) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
@@ -85,7 +87,8 @@ fun LoginScreen(navController: NavController) {
                                 if (task.isSuccessful) {
                                     // ✅ Guardamos sesión
                                     SessionManager.saveUserSession(context, email)
-
+                                    // ✅ Sincroniza el carrito con el usuario
+                                    cartViewModel.onUserChanged()
                                     navController.navigate("catalog") {
                                         popUpTo("login") { inclusive = true }
                                     }

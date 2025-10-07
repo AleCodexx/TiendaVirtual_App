@@ -17,14 +17,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(navController: NavController) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
-    val database = FirebaseDatabase.getInstance().reference
+    val db = FirebaseFirestore.getInstance()
 
     var nombre by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -95,7 +95,7 @@ fun RegisterScreen(navController: NavController) {
                                     "nombre" to nombre,
                                     "email" to email
                                 )
-                                database.child("clientes").child(uid).setValue(userMap)
+                                db.collection("clientes").document(uid).set(userMap)
 
                                 Toast.makeText(context, "Registro exitoso 🎉", Toast.LENGTH_SHORT).show()
                                 navController.popBackStack() // vuelve al login
