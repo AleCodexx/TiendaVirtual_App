@@ -99,8 +99,12 @@ fun ProfileScreen(navController: NavController, cartViewModel: CartViewModel = v
                     ProfileOption("Direcciones") {
                         navController.navigate("address_list")
                     }
-                    ProfileOption("Métodos de pago")
-
+                    ProfileOption("Métodos de pago") {
+                        navController.navigate("payment_methods")
+                    }
+                    ProfileOption("Mis reseñas") {
+                        navController.navigate("my_reviews")
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Button(

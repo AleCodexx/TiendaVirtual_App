@@ -77,6 +77,8 @@ class MainActivity : ComponentActivity() {
                             val id = backStackEntry.arguments?.getString("id")
                             OrderDetailScreen(navController, orderId = id)
                         }
+                        composable("my_reviews") { com.example.tiendavirtualapp.ui.MyReviewsScreen(navController) }
+                        composable("payment_methods") { com.example.tiendavirtualapp.ui.PaymentMethodsScreen(navController) }
                     }
                 }
             }

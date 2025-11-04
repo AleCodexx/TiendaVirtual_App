@@ -68,6 +68,28 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
         }
     }
 
+    // Consultar métodos de pago del usuario
+    var metodosPago by remember { mutableStateOf(listOf<MetodoPago>()) }
+    var metodoPagoSeleccionado by remember { mutableStateOf<MetodoPago?>(null) }
+    var expandedMetodoPago by remember { mutableStateOf(false) }
+    val userEmail = auth.currentUser?.email
+
+    // Cargar métodos de pago desde Firestore
+    LaunchedEffect(userEmail) {
+        if (!userEmail.isNullOrBlank()) {
+            db.collection("metodos_pago")
+                .whereEqualTo("usuarioEmail", userEmail)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val metodos = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(MetodoPago::class.java)?.copy(id = doc.id)
+                    }
+                    metodosPago = metodos
+                    if (metodos.isNotEmpty()) metodoPagoSeleccionado = metodos.first()
+                }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -148,33 +170,35 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
                 }
             }
             // Método de pago profesional
-            Text("Método de pago:")
-            OutlinedTextField(
-                value = numeroTarjeta,
-                onValueChange = { numeroTarjeta = it },
-                label = { Text("Número de tarjeta") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = fechaVencimiento,
-                onValueChange = { fechaVencimiento = it },
-                label = { Text("Fecha de vencimiento (MM/AA)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = cvv,
-                onValueChange = { cvv = it },
-                label = { Text("CVV") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            // Validaciones para método de pago
-            fun validarNumeroTarjeta(numero: String): Boolean = numero.matches(Regex("^\\d{16}$"))
-            fun validarFechaVencimiento(fecha: String): Boolean = fecha.matches(Regex("^(0[1-9]|1[0-2])/\\d{2}$"))
-            fun validarCVV(cvv: String): Boolean = cvv.matches(Regex("^\\d{3,4}$"))
-
+            Text("Método de pago", style = MaterialTheme.typography.titleMedium)
+            ExposedDropdownMenuBox(
+                expanded = expandedMetodoPago,
+                onExpandedChange = { expandedMetodoPago = !expandedMetodoPago }
+            ) {
+                TextField(
+                    value = metodoPagoSeleccionado?.let { "${it.tipo} •••• ${it.numero.takeLast(4)}" } ?: "Selecciona un método de pago",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Método de pago") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedMetodoPago) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedMetodoPago,
+                    onDismissRequest = { expandedMetodoPago = false }
+                ) {
+                    metodosPago.forEach { metodo ->
+                        DropdownMenuItem(
+                            text = { Text("${metodo.tipo} •••• ${metodo.numero.takeLast(4)}") },
+                            onClick = {
+                                metodoPagoSeleccionado = metodo
+                                expandedMetodoPago = false
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             // Botón de confirmar
             Button(
                 onClick = {
@@ -186,20 +210,8 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
                         Toast.makeText(context, "Selecciona una dirección", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
-                    if (numeroTarjeta.isBlank()) {
-                        Toast.makeText(context, "Ingresa el número de tarjeta", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (!validarNumeroTarjeta(numeroTarjeta)) {
-                        Toast.makeText(context, "El número de tarjeta debe tener 16 dígitos", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (!validarFechaVencimiento(fechaVencimiento)) {
-                        Toast.makeText(context, "La fecha debe ser MM/AA", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (!validarCVV(cvv)) {
-                        Toast.makeText(context, "El CVV debe tener 3 o 4 dígitos", Toast.LENGTH_SHORT).show()
+                    if (metodoPagoSeleccionado == null) {
+                        Toast.makeText(context, "Selecciona un método de pago", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     isLoading = true
@@ -208,7 +220,7 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
                         productos = cartItems,
                         total = total,
                         direccion = direccionSeleccionada?.direccionCompleta ?: "",
-                        metodoPago = "Tarjeta: $numeroTarjeta, Vence: $fechaVencimiento, CVV: $cvv",
+                        metodoPago = "Método: ${metodoPagoSeleccionado?.tipo}, Número: ${metodoPagoSeleccionado?.numero}",
                         usuarioId = user?.uid ?: "invitado"
                     )
                     db.collection("pedidos")
