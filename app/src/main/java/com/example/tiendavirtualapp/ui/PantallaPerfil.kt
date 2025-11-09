@@ -21,7 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, cartViewModel: CartViewModel = viewModel()) {
+fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = viewModel()) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val userEmail = SessionManager.getUserEmail(context)

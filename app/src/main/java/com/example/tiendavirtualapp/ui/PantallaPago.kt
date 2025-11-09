@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.collectAsState
-import com.example.tiendavirtualapp.model.Producto
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import android.widget.Toast
@@ -31,7 +29,7 @@ import androidx.compose.foundation.verticalScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
+fun PantallaPago(navController: NavController, cartViewModel: CartViewModel) {
     var direccion by remember { mutableStateOf(TextFieldValue("Av. Principal 123")) }
     var metodoPago by remember { mutableStateOf("Tarjeta de crédito (**** 1234)" ) }
     var numeroTarjeta by remember { mutableStateOf("") }

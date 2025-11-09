@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.model.Direccion
 import com.google.firebase.auth.FirebaseAuth
@@ -16,7 +15,7 @@ import com.google.firebase.firestore.SetOptions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddressFormScreen(navController: NavController) {
+fun FormularioDireccion(navController: NavController) {
     val context = LocalContext.current
     val backStackEntry = navController.currentBackStackEntry
     val id = backStackEntry?.arguments?.getString("id")

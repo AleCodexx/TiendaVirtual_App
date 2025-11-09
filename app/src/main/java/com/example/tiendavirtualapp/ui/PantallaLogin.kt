@@ -1,6 +1,5 @@
 package com.example.tiendavirtualapp.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -22,7 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, cartViewModel: CartViewModel = viewModel()) {
+fun PantallaLogin(navController: NavController, cartViewModel: CartViewModel = viewModel()) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 

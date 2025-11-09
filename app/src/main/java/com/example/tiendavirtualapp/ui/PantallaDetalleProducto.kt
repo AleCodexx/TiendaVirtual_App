@@ -39,7 +39,7 @@ import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetailScreen(
+fun PantallaDetalleProducto(
     productId: String?,
     navController: NavController,
     productoViewModel: ProductoViewModel = viewModel(),

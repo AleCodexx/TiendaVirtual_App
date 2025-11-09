@@ -12,7 +12,6 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-import java.util.*
 
 // Modelo de método de pago
  data class MetodoPago(
@@ -27,7 +26,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PaymentMethodsScreen(navController: NavController) {
+fun PantallaMetodosPago(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     val userEmail = auth.currentUser?.email
     var metodos by remember { mutableStateOf(listOf<MetodoPago>()) }

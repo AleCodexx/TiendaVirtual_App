@@ -22,7 +22,7 @@ data class Categoria(val nombre: String)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun CategoriesScreen(viewModel: ProductoViewModel = viewModel()) {
+fun PantallaCategorias(viewModel: ProductoViewModel = viewModel()) {
     val productos by viewModel.productos.collectAsState()
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }

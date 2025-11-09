@@ -25,7 +25,7 @@ import com.example.tiendavirtualapp.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(cartViewModel: CartViewModel = viewModel(), navController: NavController? = null) {
+fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavController? = null) {
     val cartItems by cartViewModel.cartItems.collectAsState()
 
     Scaffold(

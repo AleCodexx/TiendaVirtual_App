@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalContext
-import com.example.tiendavirtualapp.data.SessionManager
 import com.example.tiendavirtualapp.model.Resena
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
@@ -34,7 +33,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OrderDetailScreen(navController: NavController, orderId: String?) {
+fun PantallaDetallePedido(navController: NavController, orderId: String?) {
     var pedido by remember { mutableStateOf<Pedido?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
