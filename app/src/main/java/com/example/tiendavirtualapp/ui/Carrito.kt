@@ -22,11 +22,16 @@ import androidx.navigation.NavController
 import com.example.tiendavirtualapp.R
 import com.example.tiendavirtualapp.model.Producto
 import com.example.tiendavirtualapp.viewmodel.CartViewModel
+import com.example.tiendavirtualapp.util.formatPrice
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavController? = null) {
     val cartItems by cartViewModel.cartItems.collectAsState()
+
+    // Calcular total y formatearlo a 2 decimales
+    val total = cartItems.sumOf { it.precio }
+    val totalFormateado = formatPrice(total)
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Carrito 🛍️") }) }
@@ -59,7 +64,8 @@ fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavContro
                         }
                     }
 
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    // Reemplazado Divider (deprecado) por HorizontalDivider
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                     // Total + botón fijo abajo
                     Column(
@@ -67,7 +73,7 @@ fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavContro
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = "Total: S/ ${cartItems.sumOf { it.precio }}",
+                            text = "Total: S/ $totalFormateado",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -118,7 +124,9 @@ fun CartItemRow(producto: Producto, onRemove: () -> Unit) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(producto.nombre, fontWeight = FontWeight.Bold, maxLines = 2)
-                Text("S/ ${producto.precio}", color = MaterialTheme.colorScheme.primary)
+                // Formatear precio del producto a 2 decimales
+                val precioFormateado = formatPrice(producto.precio)
+                Text("S/ $precioFormateado", color = MaterialTheme.colorScheme.primary)
             }
             Spacer(modifier = Modifier.width(12.dp))
             Button(

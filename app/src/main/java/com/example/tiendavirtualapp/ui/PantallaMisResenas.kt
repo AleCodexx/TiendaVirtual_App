@@ -1,5 +1,7 @@
 package com.example.tiendavirtualapp.ui
 
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
@@ -20,10 +21,9 @@ import com.example.tiendavirtualapp.model.Producto
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -67,7 +67,9 @@ fun PantallaMisResenas(navController: NavController) {
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)) {
             when {
                 loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -86,15 +88,11 @@ fun PantallaMisResenas(navController: NavController) {
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(reviews) { review ->
-                            var editing by rememberSaveable { mutableStateOf(false) }
-                            var rating by rememberSaveable { mutableStateOf(review.puntuacion) }
-                            var comment by rememberSaveable { mutableStateOf(review.comentario) }
+                            // Obtener info del producto asociado (solo lectura)
                             val db = FirebaseFirestore.getInstance()
                             var producto by remember { mutableStateOf<Producto?>(null) }
                             var productoLoading by remember { mutableStateOf(true) }
-                            var expanded by rememberSaveable { mutableStateOf(false) }
 
-                            // Consultar datos del producto
                             LaunchedEffect(review.productoId) {
                                 productoLoading = true
                                 db.collection("productos").document(review.productoId).get()
@@ -107,12 +105,36 @@ fun PantallaMisResenas(navController: NavController) {
                                     }
                             }
 
+                            // Card estilo Temu: imagen grande, info, estrellas y botón "Ver pedido"
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                elevation = CardDefaults.cardElevation(4.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val orderId = review.orderId.trim()
+                                        if (orderId.isNotBlank()) {
+                                            val encoded = Uri.encode(orderId)
+                                            // debug: mostrar snackbar con el id que vamos a abrir
+                                            coroutineScope.launch { snackbarHostState.showSnackbar("Abrir pedido: $orderId") }
+                                            navController.navigate("order_detail/$encoded")
+                                        } else {
+                                            // Fallback: navegar al detalle del producto si no hay orderId
+                                            val prodId = review.productoId.trim()
+                                            if (prodId.isNotBlank()) {
+                                                coroutineScope.launch { snackbarHostState.showSnackbar("Abrir producto: $prodId") }
+                                                navController.navigate("detalle/${Uri.encode(prodId)}")
+                                            } else {
+                                                coroutineScope.launch { snackbarHostState.showSnackbar("ID de pedido/producto inválido") }
+                                            }
+                                        }
+                                    },
+                                elevation = CardDefaults.cardElevation(8.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
                                 if (productoLoading) {
-                                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                    Box(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp), contentAlignment = Alignment.Center) {
                                         CircularProgressIndicator()
                                     }
                                 } else {
@@ -121,138 +143,92 @@ fun PantallaMisResenas(navController: NavController) {
                                             AsyncImage(
                                                 model = producto?.imagenUrl,
                                                 contentDescription = producto?.nombre,
-                                                modifier = Modifier.size(80.dp)
+                                                modifier = Modifier
+                                                    .size(96.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .padding(end = 12.dp)
                                             )
-                                            Spacer(modifier = Modifier.width(12.dp))
+
                                             Column(modifier = Modifier.weight(1f)) {
-                                                Text(producto?.nombre ?: "Producto", fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 2)
-                                                Text(producto?.descripcion ?: "Sin descripción", fontSize = 13.sp, color = Color.Gray, maxLines = 2)
+                                                Text(
+                                                    producto?.nombre ?: "Producto",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    maxLines = 2
+                                                )
+
+                                                Spacer(modifier = Modifier.height(4.dp))
+
+                                                // Puntuación (estática)
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     repeat(5) { i ->
                                                         val filled = i < review.puntuacion
                                                         Icon(
                                                             imageVector = if (filled) Icons.Filled.Star else Icons.Outlined.Star,
                                                             contentDescription = null,
-                                                            tint = if (filled) MaterialTheme.colorScheme.primary else Color.Gray
+                                                            tint = if (filled) MaterialTheme.colorScheme.primary else Color.Gray,
+                                                            modifier = Modifier.size(18.dp)
                                                         )
+                                                        Spacer(modifier = Modifier.width(4.dp))
                                                     }
                                                 }
-                                            }
-                                            IconButton(onClick = { expanded = !expanded }) {
-                                                Icon(
-                                                    imageVector = if (expanded) Icons.Filled.Check else Icons.Filled.Edit,
-                                                    contentDescription = if (expanded) "Cerrar" else "Ver reseña"
-                                                )
-                                            }
-                                        }
-                                        if (expanded) {
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            if (!editing) {
-                                                Text(review.comentario)
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+
+                                                Spacer(modifier = Modifier.height(8.dp))
+
                                                 Text(
-                                                    text = "Fecha: ${sdf.format(Date(review.fecha))}",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = Color.Gray
+                                                    text = review.comentario.ifBlank { "Sin comentario" },
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 3
                                                 )
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                                                    IconButton(onClick = {
-                                                        rating = review.puntuacion
-                                                        comment = review.comentario
-                                                        editing = true
-                                                    }) {
-                                                        Icon(Icons.Filled.Edit, contentDescription = "Editar")
-                                                    }
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    IconButton(onClick = {
-                                                        val id = review.id
-                                                        if (id.isNotBlank()) {
-                                                            db.collection("resenas").document(id).delete()
-                                                                .addOnSuccessListener {
-                                                                    reviews = reviews.filter { it.id != id }
-                                                                    coroutineScope.launch {
-                                                                        snackbarHostState.showSnackbar("Reseña eliminada")
-                                                                    }
-                                                                }
-                                                                .addOnFailureListener { e ->
-                                                                    coroutineScope.launch {
-                                                                        snackbarHostState.showSnackbar("Error al eliminar reseña: ${e.message}")
-                                                                    }
-                                                                }
-                                                        }
-                                                    }) {
-                                                        Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
-                                                    }
+
+                                                // Mostrar orderId para depuración/visibilidad (si existe)
+                                                if (review.orderId.isNotBlank()) {
+                                                    Spacer(modifier = Modifier.height(6.dp))
+                                                    Text(
+                                                        text = "Pedido: ${review.orderId}",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = Color.Gray
+                                                    )
                                                 }
-                                            } else {
-                                                Text("Editar reseña", fontWeight = FontWeight.Bold)
-                                                Spacer(modifier = Modifier.height(6.dp))
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Text("Puntuación:", modifier = Modifier.padding(end = 8.dp))
-                                                    Row {
-                                                        repeat(5) { i ->
-                                                            val idx = i + 1
-                                                            IconButton(onClick = { rating = idx }) {
-                                                                Icon(
-                                                                    imageVector = if (i < rating) Icons.Filled.Star else Icons.Outlined.Star,
-                                                                    contentDescription = null,
-                                                                    tint = if (i < rating) MaterialTheme.colorScheme.primary else Color.Gray
-                                                                )
-                                                            }
-                                                        }
+                                            }
+
+                                            // Chevron para indicar navegación
+                                            Icon(
+                                                imageVector = Icons.Filled.ChevronRight,
+                                                contentDescription = "Ver pedido",
+                                                tint = Color.Gray,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                                            Text(
+                                                text = "Fecha: ${sdf.format(Date(review.fecha))}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.Gray,
+                                                modifier = Modifier.weight(1f)
+                                            )
+
+                                            OutlinedButton(
+                                                onClick = {
+                                                    val orderId = review.orderId.trim()
+                                                    if (orderId.isNotBlank()) {
+                                                       coroutineScope.launch { snackbarHostState.showSnackbar("Abrir pedido: $orderId") }
+                                                        navController.navigate("order_detail/${Uri.encode(orderId)}")
+                                                    } else {
+                                                        val prodId = review.productoId.trim()
+                                                        if (prodId.isNotBlank()) navController.navigate("detalle/${Uri.encode(prodId)}")
+                                                        else coroutineScope.launch { snackbarHostState.showSnackbar("ID de pedido/producto inválido") }
                                                     }
-                                                }
-                                                OutlinedTextField(
-                                                    value = comment,
-                                                    onValueChange = { comment = it },
-                                                    label = { Text("Comentario") },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .heightIn(min = 56.dp, max = 200.dp)
-                                                )
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                                                    TextButton(onClick = {
-                                                        rating = review.puntuacion
-                                                        comment = review.comentario
-                                                        editing = false
-                                                    }) { Text("Cancelar") }
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Button(onClick = {
-                                                        if (comment.isBlank()) {
-                                                            coroutineScope.launch {
-                                                                snackbarHostState.showSnackbar("El comentario no puede estar vacío")
-                                                            }
-                                                            return@Button
-                                                        }
-                                                        if (rating !in 1..5) {
-                                                            coroutineScope.launch {
-                                                                snackbarHostState.showSnackbar("Puntuación inválida")
-                                                            }
-                                                            return@Button
-                                                        }
-                                                        val updated = review.copy(
-                                                            puntuacion = rating,
-                                                            comentario = comment,
-                                                            fecha = System.currentTimeMillis()
-                                                        )
-                                                        db.collection("resenas").document(review.id).set(updated)
-                                                            .addOnSuccessListener {
-                                                                reviews = reviews.map { if (it.id == review.id) updated else it }
-                                                                editing = false
-                                                                coroutineScope.launch {
-                                                                    snackbarHostState.showSnackbar("Reseña actualizada")
-                                                                }
-                                                            }
-                                                            .addOnFailureListener { e ->
-                                                                coroutineScope.launch {
-                                                                    snackbarHostState.showSnackbar("Error al actualizar reseña: ${e.message}")
-                                                                }
-                                                            }
-                                                    }) { Text("Guardar") }
-                                                }
+                                                },
+                                                shape = RoundedCornerShape(20.dp),
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                            ) {
+                                                Text("Ver pedido", style = MaterialTheme.typography.labelLarge)
                                             }
                                         }
                                     }

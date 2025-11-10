@@ -10,8 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.model.Pedido
+import com.example.tiendavirtualapp.util.formatPrice
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,6 +31,8 @@ fun PantallaPedidos(navController: NavController) {
         if (userId != null) {
             db.collection("pedidos")
                 .whereEqualTo("usuarioId", userId)
+                // Mostrar pedidos más recientes primero
+                .orderBy("fecha", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, _ ->
                     if (snapshot != null) {
                         pedidos = snapshot.documents.mapNotNull { doc ->
@@ -65,7 +69,8 @@ fun PantallaPedidos(navController: NavController) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                                 Text("Fecha: ${sdf.format(Date(pedido.fecha))}")
-                                Text("Total: S/ ${pedido.total}")
+                                // Formatear total a 2 decimales
+                                Text("Total: S/ ${formatPrice(pedido.total)}")
                                 Text("Estado: ${pedido.estado}")
                                 Button(
                                     onClick = { navController.navigate("order_detail/${pedido.id}") },
@@ -81,4 +86,3 @@ fun PantallaPedidos(navController: NavController) {
         }
     }
 }
-

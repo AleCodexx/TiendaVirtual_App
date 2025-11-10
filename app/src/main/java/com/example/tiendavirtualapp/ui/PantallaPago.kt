@@ -5,17 +5,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.viewmodel.CartViewModel
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.collectAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,17 +25,17 @@ import com.example.tiendavirtualapp.model.Pedido
 import com.example.tiendavirtualapp.model.Direccion
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import com.example.tiendavirtualapp.model.MetodoPago
+import com.example.tiendavirtualapp.util.formatPrice
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaPago(navController: NavController, cartViewModel: CartViewModel) {
-    var direccion by remember { mutableStateOf(TextFieldValue("Av. Principal 123")) }
-    var metodoPago by remember { mutableStateOf("Tarjeta de crédito (**** 1234)" ) }
-    var numeroTarjeta by remember { mutableStateOf("") }
-    var fechaVencimiento by remember { mutableStateOf("") }
-    var cvv by remember { mutableStateOf("") }
     val cartItems by cartViewModel.cartItems.collectAsState()
     val total = cartItems.sumOf { it.precio }
+    // Formatear total a 2 decimales
+    val totalFormateado = formatPrice(total)
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
@@ -94,7 +93,7 @@ fun PantallaPago(navController: NavController, cartViewModel: CartViewModel) {
                 title = { Text("Pagar") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
                     }
                 }
             )
@@ -118,12 +117,14 @@ fun PantallaPago(navController: NavController, cartViewModel: CartViewModel) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(producto.nombre)
-                        Text("S/ ${producto.precio}")
+
+                        // Formatear precio del producto a 2 decimales
+                        Text("S/ ${formatPrice(producto.precio)}")
                     }
                 }
             }
-            Divider()
-            Text("Total: S/ $total", style = MaterialTheme.typography.titleMedium)
+            HorizontalDivider()
+            Text("Total: S/ $totalFormateado", style = MaterialTheme.typography.titleMedium)
             // Dirección de envío seleccionada
             Text("Dirección de envío:")
             if (direcciones.isEmpty()) {

@@ -1,5 +1,6 @@
 package com.example.tiendavirtualapp
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -73,7 +74,8 @@ class MainActivity : ComponentActivity() {
                         composable("address_form") { FormularioDireccion(navController) }
                         composable("orders") { PantallaPedidos(navController) }
                         composable("order_detail/{id}") { backStackEntry ->
-                            val id = backStackEntry.arguments?.getString("id")
+                            val rawId = backStackEntry.arguments?.getString("id")
+                            val id = rawId?.let { Uri.decode(it) }
                             PantallaDetallePedido(navController, orderId = id)
                         }
                         composable("my_reviews") { com.example.tiendavirtualapp.ui.PantallaMisResenas(navController) }

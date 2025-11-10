@@ -12,17 +12,7 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-
-// Modelo de método de pago
- data class MetodoPago(
-    val id: String = "",
-    val tipo: String = "Tarjeta",
-    val numero: String = "",
-    val vencimiento: String = "",
-    val cvv: String = "",
-    val titular: String = "",
-    val usuarioEmail: String = ""
-)
+import com.example.tiendavirtualapp.model.MetodoPago
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,4 +183,3 @@ fun MetodoPagoForm(
         }
     )
 }
-

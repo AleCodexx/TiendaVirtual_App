@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.example.tiendavirtualapp.ui
 
 import androidx.compose.foundation.background
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.platform.LocalContext
 import com.example.tiendavirtualapp.model.Resena
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
@@ -37,7 +37,6 @@ fun PantallaDetallePedido(navController: NavController, orderId: String?) {
     var pedido by remember { mutableStateOf<Pedido?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val userEmail = auth.currentUser?.email
     val snackbarHostState = remember { SnackbarHostState() }
@@ -48,7 +47,7 @@ fun PantallaDetallePedido(navController: NavController, orderId: String?) {
         if (!orderId.isNullOrBlank()) {
             FirebaseFirestore.getInstance().collection("pedidos").document(orderId).get()
                 .addOnSuccessListener { doc ->
-                    pedido = doc.toObject(Pedido::class.java)
+                    pedido = doc.toObject(Pedido::class.java)?.copy(id = doc.id)
                     isLoading = false
                 }
                 .addOnFailureListener {
@@ -133,8 +132,7 @@ fun PantallaDetallePedido(navController: NavController, orderId: String?) {
                                     productoId = producto.id,
                                     productoNombre = producto.nombre,
                                     orderId = pedido!!.id,
-                                    userEmail = userEmail,
-                                    snackbarHostState = snackbarHostState,
+                                    userEmail = userEmail ?: "",
                                     onSaved = { message ->
                                         coroutineScope.launch {
                                             snackbarHostState.showSnackbar(message)
@@ -155,7 +153,7 @@ fun PantallaDetallePedido(navController: NavController, orderId: String?) {
 private fun OrderStatusTimeline(currentStatus: String) {
     // Definimos las etapas en orden
     val stages = listOf("Pendiente", "En preparación", "En envío", "Entregado")
-    // Normalizamos el estado actual para comparar
+    // Normalizamos el estado currentStatus para comparar
     val normalized = currentStatus.trim().lowercase(Locale.getDefault())
     val currentIndex = stages.indexOfFirst { it.lowercase(Locale.getDefault()) == normalized }.let { if (it == -1) 0 else it }
 
@@ -244,14 +242,13 @@ private fun ProductReviewSection(
     productoId: String,
     productoNombre: String,
     orderId: String,
-    userEmail: String?,
-    snackbarHostState: SnackbarHostState,
+    userEmail: String,
     onSaved: (String) -> Unit
 ) {
     var existing by remember { mutableStateOf<Resena?>(null) }
     var loading by remember { mutableStateOf(true) }
     var editing by remember { mutableStateOf(false) }
-    var rating by rememberSaveable { mutableStateOf(5) }
+    var rating by rememberSaveable { mutableStateOf(0) }
     var comment by rememberSaveable { mutableStateOf("") }
     val db = FirebaseFirestore.getInstance()
 
@@ -259,7 +256,7 @@ private fun ProductReviewSection(
     LaunchedEffect(productoId, orderId, userEmail) {
         loading = true
         existing = null
-        if (!userEmail.isNullOrBlank()) {
+        if (userEmail.isNotBlank()) {
             db.collection("resenas")
                 .whereEqualTo("productoId", productoId)
                 .whereEqualTo("orderId", orderId)
@@ -306,7 +303,7 @@ private fun ProductReviewSection(
             Text(existing!!.comentario)
 
             // Botones Editar / Eliminar si el usuario coincide
-            if (!userEmail.isNullOrBlank() && userEmail == existing!!.usuarioEmail) {
+            if (userEmail.isNotBlank() && userEmail == existing!!.usuarioEmail) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                     TextButton(onClick = {
@@ -343,7 +340,7 @@ private fun ProductReviewSection(
 
         } else {
             // Mostrar editor (botón para abrir o edición activa)
-            if (!userEmail.isNullOrBlank()) {
+            if (userEmail.isNotBlank()) {
                 if (!editing) {
                     Button(onClick = { editing = true }, modifier = Modifier.padding(top = 8.dp)) {
                         Text("Escribir reseña")
@@ -383,7 +380,8 @@ private fun ProductReviewSection(
                                 rating = existing!!.puntuacion
                                 comment = existing!!.comentario
                             } else {
-                                rating = 5
+                                // dejar en 0 para mostrar estrellas vacías por defecto
+                                rating = 0
                                 comment = ""
                             }
                             editing = false
@@ -422,7 +420,7 @@ private fun ProductReviewSection(
                                     id = "",
                                     productoId = productoId,
                                     orderId = orderId,
-                                    usuarioEmail = userEmail ?: "",
+                                    usuarioEmail = userEmail,
                                     puntuacion = rating,
                                     comentario = comment,
                                     fecha = System.currentTimeMillis()
@@ -433,7 +431,8 @@ private fun ProductReviewSection(
                                         existing = nueva.copy(id = docRef.id)
                                         editing = false
                                         comment = ""
-                                        rating = 5
+                                        // resetear rating a 0 tras guardar nueva reseña (estrellas vacías si quiere escribir otra)
+                                        rating = 0
                                         onSaved("Reseña guardada")
                                     }
                                     .addOnFailureListener { e ->
