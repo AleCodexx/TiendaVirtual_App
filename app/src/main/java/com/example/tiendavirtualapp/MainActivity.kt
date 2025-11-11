@@ -13,7 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tiendavirtualapp.navigation.BottomNavigationBar
 import com.example.tiendavirtualapp.ui.Carrito
-import com.example.tiendavirtualapp.ui.PantallaCatalgo
+import com.example.tiendavirtualapp.ui.PantallaCatalogo
 import com.example.tiendavirtualapp.ui.PantallaCategorias
 import com.example.tiendavirtualapp.ui.PantallaLogin
 import com.example.tiendavirtualapp.ui.PantallaPerfil
@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = "catalog",
                         modifier = Modifier.padding(padding)
                     ) {
-                        composable("catalog") { PantallaCatalgo(navController, cartViewModel = cartViewModel) }
+                        composable("catalog") { PantallaCatalogo(navController, cartViewModel = cartViewModel) }
                         composable("categories") { PantallaCategorias() }
                         composable("cart") { Carrito(cartViewModel = cartViewModel, navController = navController) }
                         composable("profile") { PantallaPerfil(navController) }

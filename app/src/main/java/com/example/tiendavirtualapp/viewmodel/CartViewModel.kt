@@ -1,13 +1,11 @@
 package com.example.tiendavirtualapp.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.tiendavirtualapp.model.Producto
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class CartViewModel : ViewModel() {
     private val _cartItems = MutableStateFlow<List<Producto>>(emptyList())
@@ -34,13 +32,13 @@ class CartViewModel : ViewModel() {
     fun addToCart(producto: Producto) {
         _cartItems.value = _cartItems.value + producto
         val collection = getCartCollection() ?: return
-        collection.document(producto.id ?: producto.hashCode().toString()).set(producto)
+        collection.document(producto.id).set(producto)
     }
 
     fun removeFromCart(producto: Producto) {
         _cartItems.value = _cartItems.value - producto
         val collection = getCartCollection() ?: return
-        collection.document(producto.id ?: producto.hashCode().toString()).delete()
+        collection.document(producto.id).delete()
     }
 
     fun clearCart() {
@@ -60,5 +58,3 @@ class CartViewModel : ViewModel() {
         loadCartFromFirestore()
     }
 }
-
-

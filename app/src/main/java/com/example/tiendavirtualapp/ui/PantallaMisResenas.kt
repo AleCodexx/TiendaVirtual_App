@@ -196,7 +196,7 @@ fun PantallaMisResenas(navController: NavController) {
                                             // Chevron para indicar navegación
                                             Icon(
                                                 imageVector = Icons.Filled.ChevronRight,
-                                                contentDescription = "Ver pedido",
+                                                contentDescription = "Ver producto",
                                                 tint = Color.Gray,
                                                 modifier = Modifier.size(28.dp)
                                             )
