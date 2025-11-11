@@ -21,13 +21,14 @@ import com.example.tiendavirtualapp.viewmodel.CartViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.tiendavirtualapp.data.SessionManager
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import com.example.tiendavirtualapp.ui.components.ImagenProducto
 import com.example.tiendavirtualapp.ui.components.DescripcionExpandible
 import com.example.tiendavirtualapp.ui.components.SelectorCantidad
 import com.example.tiendavirtualapp.ui.components.ProductosRelacionados
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.unit.Dp
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,9 +46,11 @@ fun PantallaDetalleProducto(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val cantidad = cartItems.count { it.id == producto?.id }
-    val scrollState = rememberScrollState()
 
     val cantidadSeleccionada = remember { mutableStateOf(1) }
+
+    // altura sugerida para la sección de productos relacionados (para que el LazyVerticalGrid no intente crecer indefinidamente)
+    val relatedHeight: Dp = 420.dp
 
     Scaffold(
         containerColor = Color.White,
@@ -105,53 +108,75 @@ fun PantallaDetalleProducto(
                 Text("Producto no encontrado", color = Color.Gray)
             }
         } else {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(scrollState)
                     .padding(bottom = 80.dp), // espacio para el bottomBar
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ImagenProducto(
-                    producto = producto,
-                    onBack = { navController.popBackStack() },
-                    onSearch = { /* TODO: abrir búsqueda global */ }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    DescripcionExpandible(text = producto.descripcion)
+                item {
+                    ImagenProducto(
+                        producto = producto,
+                        onBack = { navController.popBackStack() },
+                        onSearch = { /* TODO: abrir búsqueda global */ }
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Text("Cantidad:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    SelectorCantidad(cantidadState = cantidadSeleccionada)
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        DescripcionExpandible(text = producto.descripcion)
+                    }
+                }
 
-                Text(
-                    text = "Más productos",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(start = 16.dp, bottom = 8.dp, top = 8.dp)
-                )
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-                ProductosRelacionados(
-                    productos = productos.filter { it.id != producto.id }.take(10),
-                    onProductClick = { prod -> navController.navigate("detalle/${prod.id}") }
-                )
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Text("Cantidad:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        SelectorCantidad(cantidadState = cantidadSeleccionada)
+                    }
+                }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    Text(
+                        text = "Más productos",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp, top = 8.dp)
+                    )
+                }
+
+                item {
+                    Box(modifier = Modifier.height(relatedHeight)) {
+                        ProductosRelacionados(
+                            productos = productos.filter { it.id != producto.id }.take(10),
+                            onProductClick = { prod -> navController.navigate("detalle/${prod.id}") {
+                                launchSingleTop = true
+                            } },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
 
         }

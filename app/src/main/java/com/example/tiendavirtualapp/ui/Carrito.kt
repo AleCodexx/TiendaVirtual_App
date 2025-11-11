@@ -15,17 +15,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tiendavirtualapp.viewmodel.CartViewModel
 import com.example.tiendavirtualapp.util.formatPrice
-import com.example.tiendavirtualapp.ui.components.CartItemRow
+import com.example.tiendavirtualapp.ui.components.FilaItemCarrito
 import com.example.tiendavirtualapp.ui.components.PromoBox
-import com.example.tiendavirtualapp.ui.components.EmptyState
+import com.example.tiendavirtualapp.ui.components.EstadoVacio
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavController? = null) {
     val cartItems by cartViewModel.cartItems.collectAsState()
 
-    // Calcular total y formatearlo a 2 decimales
-    val total = cartItems.sumOf { it.precio }
+    // Agrupar por id y calcular cantidad por producto
+    val grouped = cartItems.groupingBy { it.id }.fold(mapOf<String, Any>()) { acc, _ -> acc }
+
+    // Convertir a lista de pares (producto, cantidad)
+    val groupedList = cartItems.groupBy { it.id }.map { entry ->
+        val producto = entry.value.first()
+        val cantidad = entry.value.size
+        producto to cantidad
+    }
+
+    // Calcular total (sum precio * cantidad)
+    val total = groupedList.sumOf { (prod, qty) -> prod.precio * qty }
     val totalFormateado = formatPrice(total)
 
     Scaffold(
@@ -38,8 +48,8 @@ fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavContro
         ) {
             PromoBox()
 
-            if (cartItems.isEmpty()) {
-                EmptyState(title = "Tu carrito está vacío", subtitle = "Agrega tus productos favoritos ✨")
+            if (groupedList.isEmpty()) {
+                EstadoVacio(title = "Tu carrito está vacío", subtitle = "Agrega tus productos favoritos ✨")
             } else {
                 // Contenido principal
                 Column(
@@ -51,11 +61,13 @@ fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavContro
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.weight(1f) // ocupa espacio disponible
                     ) {
-                        items(cartItems.size) { index ->
-                            val product = cartItems[index]
-                            CartItemRow(producto = product, onRemove = {
-                                cartViewModel.removeFromCart(product)
-                            })
+                        items(groupedList.size) { index ->
+                            val (product, qty) = groupedList[index]
+                            FilaItemCarrito(producto = product, cantidad = qty,
+                                onIncrease = { cartViewModel.addToCart(product) },
+                                onDecrease = { cartViewModel.decreaseFromCart(product) },
+                                onRemove = { cartViewModel.removeAllOfProduct(product) }
+                            )
                         }
                     }
 
@@ -79,7 +91,7 @@ fun Carrito(cartViewModel: CartViewModel = viewModel(), navController: NavContro
                             onClick = { navController?.navigate("checkout") },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
-                            enabled = cartItems.isNotEmpty()
+                            enabled = groupedList.isNotEmpty()
                         ) {
                             Text("Finalizar compra")
                         }

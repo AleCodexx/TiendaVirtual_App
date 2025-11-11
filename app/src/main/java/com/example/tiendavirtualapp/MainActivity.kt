@@ -27,6 +27,9 @@ import com.example.tiendavirtualapp.ui.ListaDirecciones
 import com.example.tiendavirtualapp.ui.FormularioDireccion
 import com.example.tiendavirtualapp.ui.PantallaPedidos
 import com.example.tiendavirtualapp.ui.PantallaDetallePedido
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Offset
 
 
 class MainActivity : ComponentActivity() {
@@ -39,6 +42,9 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val cartViewModel: CartViewModel = viewModel()
 
+                // estado para la posición del icono del carrito (reportado en dp)
+                val cartIconPositionDp = remember { mutableStateOf<Offset?>(null) }
+
                 Scaffold(
                     bottomBar = {
 
@@ -46,7 +52,7 @@ class MainActivity : ComponentActivity() {
                         val currentRoute = navBackStackEntry?.destination?.route
                         val shouldHideBar = currentRoute?.startsWith("detalle") == true
                         if (!shouldHideBar) {
-                            BottomNavigationBar(navController)
+                            BottomNavigationBar(navController, onCartIconPositionChanged = { cartIconPositionDp.value = it })
                         }
                     }
                 ) { padding ->
@@ -55,8 +61,15 @@ class MainActivity : ComponentActivity() {
                         startDestination = "catalog",
                         modifier = Modifier.padding(padding)
                     ) {
-                        composable("catalog") { PantallaCatalogo(navController, cartViewModel = cartViewModel) }
-                        composable("categories") { PantallaCategorias() }
+
+                        composable("catalog") { PantallaCatalogo(navController, cartViewModel = cartViewModel, cartIconPositionDp = cartIconPositionDp.value) }
+                        // ruta para catálogo filtrado por categoría
+                        composable("catalog/{category}") { backStackEntry ->
+                            val raw = backStackEntry.arguments?.getString("category")
+                            val decoded = raw?.let { Uri.decode(it) }
+                            PantallaCatalogo(navController, cartViewModel = cartViewModel, cartIconPositionDp = cartIconPositionDp.value, initialCategory = decoded)
+                        }
+                        composable("categories") { PantallaCategorias(navController) }
                         composable("cart") { Carrito(cartViewModel = cartViewModel, navController = navController) }
                         composable("profile") { PantallaPerfil(navController) }
                         composable("login") { PantallaLogin(navController) }

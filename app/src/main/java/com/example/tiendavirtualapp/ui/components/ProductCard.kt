@@ -16,6 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
 
 @Composable
 fun ProductCard(
@@ -23,7 +26,8 @@ fun ProductCard(
     producto: Producto,
     cantidadEnCarrito: Int = 0,
     onAddToCart: () -> Unit = {},
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onAddToCartWithPosition: ((Offset) -> Unit)? = null
 ) {
     Card(
         modifier = modifier
@@ -77,17 +81,36 @@ fun ProductCard(
                         ),
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = onAddToCart) {
-                        BadgedBox(badge = {
-                            if (cantidadEnCarrito > 0) {
-                                Badge { Text(cantidadEnCarrito.toString()) }
+                    Box(modifier = Modifier.wrapContentSize()) {
+                        var buttonOffsetDp = Offset.Zero
+                        val density = LocalDensity.current
+                        IconButton(
+                            onClick = {
+                                // primero ejecutar la acción de añadir (el padre decide si se añade)
+                                onAddToCart()
+                                // luego reportar la posición para que el padre pueda animar la gota
+                                onAddToCartWithPosition?.let { callback ->
+                                    callback(buttonOffsetDp)
+                                }
+                            },
+                            modifier = Modifier
+                                .onGloballyPositioned { coords ->
+                                    val position = coords.localToWindow(Offset.Zero)
+                                    // Convert position from pixels to dp-based Offset using density
+                                    buttonOffsetDp = with(density) { Offset(position.x.toDp().value, position.y.toDp().value) }
+                                }
+                        ) {
+                            BadgedBox(badge = {
+                                if (cantidadEnCarrito > 0) {
+                                    Badge { Text(cantidadEnCarrito.toString()) }
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.AddShoppingCart,
+                                    contentDescription = "Agregar al carrito",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.AddShoppingCart,
-                                contentDescription = "Agregar al carrito",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
                         }
                     }
                 }

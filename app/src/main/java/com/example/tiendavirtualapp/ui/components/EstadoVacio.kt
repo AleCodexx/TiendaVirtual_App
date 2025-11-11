@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun EmptyState(title: String, subtitle: String, modifier: Modifier = Modifier) {
+fun EstadoVacio(title: String, subtitle: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()

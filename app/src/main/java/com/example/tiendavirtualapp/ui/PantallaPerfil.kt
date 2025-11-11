@@ -9,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -18,6 +17,18 @@ import com.example.tiendavirtualapp.viewmodel.CartViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,36 +53,57 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
         }
     }
 
+    // obtener inicial para el avatar
+    val initial = remember(nombre, userEmail) {
+        when {
+            nombre.isNotBlank() && nombre != "Cargando..." -> nombre.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "U"
+            !userEmail.isNullOrBlank() -> userEmail.firstOrNull()?.uppercaseChar()?.toString() ?: "U"
+            else -> "U"
+        }
+    }
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Mi Perfil 👤") }) }
+        topBar = { TopAppBar(title = { Text("Perfil 👤") }) }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // 🔹 Header del perfil
+            // 🔹 Header del perfil mejorado
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f))
                     .padding(20.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Avatar placeholder
+                    // Avatar con inicial
                     Box(
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(88.dp)
                             .clip(CircleShape)
-                            .background(Color.Gray)
-                    )
+                            .background(MaterialTheme.colorScheme.primary)
+                            .shadow(4.dp, CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = initial,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
                         text = nombre,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -79,12 +111,12 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
                     Text(
                         text = userEmail ?: "Invitado",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Column(
                 modifier = Modifier
@@ -93,18 +125,19 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (userEmail != null) {
-                    ProfileOption("Mis pedidos") {
+                    ProfileOption(title = "Mis pedidos", icon = Icons.Default.ReceiptLong) {
                         navController.navigate("orders")
                     }
-                    ProfileOption("Direcciones") {
+                    ProfileOption(title = "Direcciones", icon = Icons.Default.LocationOn) {
                         navController.navigate("address_list")
                     }
-                    ProfileOption("Métodos de pago") {
+                    ProfileOption(title = "Métodos de pago", icon = Icons.Default.Payment) {
                         navController.navigate("payment_methods")
                     }
-                    ProfileOption("Mis reseñas") {
+                    ProfileOption(title = "Mis reseñas", icon = Icons.Default.Star) {
                         navController.navigate("my_reviews")
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Button(
@@ -117,9 +150,10 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
                                 popUpTo("catalog") { inclusive = true }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Cerrar sesión")
+                        Text("Cerrar sesión", color = MaterialTheme.colorScheme.onError)
                     }
                 } else {
                     Button(
@@ -128,7 +162,7 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
                     ) {
                         Text("Iniciar sesión")
                     }
-                    Button(
+                    OutlinedButton(
                         onClick = { navController.navigate("register") },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -141,21 +175,39 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
 }
 
 @Composable
-fun ProfileOption(title: String, onClick: () -> Unit = {}) {
+fun ProfileOption(title: String, icon: ImageVector, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp),
-        onClick = onClick
+            .height(56.dp),
+        onClick = onClick,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.CenterStart
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 12.dp, end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Text(
                 text = title,
-                modifier = Modifier.padding(start = 16.dp),
                 style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(
+                imageVector = Icons.Default.ArrowForward, // mejor affordance para navegación
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
         }
     }

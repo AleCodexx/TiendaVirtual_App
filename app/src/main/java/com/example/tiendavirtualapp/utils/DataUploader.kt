@@ -66,6 +66,7 @@ object DataUploader {
                 categoria = "Juguetes",
                 imagenUrl = "https://img.kwcdn.com/product/fancy/c15e3871-2f25-433e-b6d4-21b682cc521c.jpg?imageView2/2/w/800/q/70/format/webp"
             )
+
         )
 
         productos.forEach { producto ->

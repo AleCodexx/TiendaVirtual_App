@@ -24,19 +24,76 @@ class CartViewModel : ViewModel() {
     private fun loadCartFromFirestore() {
         val collection = getCartCollection() ?: return
         collection.get().addOnSuccessListener { snapshot ->
-            val productos = snapshot.documents.mapNotNull { it.toObject(Producto::class.java) }
-            _cartItems.value = productos
+            val productosExpanded = mutableListOf<Producto>()
+            for (doc in snapshot.documents) {
+                val prod = doc.toObject(Producto::class.java)
+                val cantidad = doc.getLong("cantidad")?.toInt() ?: 1
+                if (prod != null) {
+                    repeat(cantidad) { productosExpanded.add(prod) }
+                }
+            }
+            _cartItems.value = productosExpanded
         }
     }
 
     fun addToCart(producto: Producto) {
+        // Añade una unidad en memoria
         _cartItems.value = _cartItems.value + producto
+        // Sincroniza en Firestore: aumenta o crea el documento con campo 'cantidad'
         val collection = getCartCollection() ?: return
-        collection.document(producto.id).set(producto)
+        val docRef = collection.document(producto.id)
+        val newCount = _cartItems.value.count { it.id == producto.id }
+        val data = mapOf(
+            "id" to producto.id,
+            "nombre" to producto.nombre,
+            "precio" to producto.precio,
+            "descripcion" to producto.descripcion,
+            "categoria" to producto.categoria,
+            "imagenUrl" to producto.imagenUrl,
+            "cantidad" to newCount
+        )
+        docRef.set(data)
     }
 
     fun removeFromCart(producto: Producto) {
-        _cartItems.value = _cartItems.value - producto
+        // Elimina una unidad en memoria
+        val current = _cartItems.value.toMutableList()
+        val index = current.indexOfFirst { it.id == producto.id }
+        if (index >= 0) {
+            current.removeAt(index)
+            _cartItems.value = current
+        }
+        // Actualizar en Firestore: decrementar cantidad o borrar documento
+        val collection = getCartCollection() ?: return
+        val docRef = collection.document(producto.id)
+        val newCount = _cartItems.value.count { it.id == producto.id }
+        if (newCount > 0) {
+            // obtener producto actual para enviar datos
+            val prod = _cartItems.value.firstOrNull { it.id == producto.id } ?: producto
+            val data = mapOf(
+                "id" to prod.id,
+                "nombre" to prod.nombre,
+                "precio" to prod.precio,
+                "descripcion" to prod.descripcion,
+                "categoria" to prod.categoria,
+                "imagenUrl" to prod.imagenUrl,
+                "cantidad" to newCount
+            )
+            docRef.set(data)
+        } else {
+            docRef.delete()
+        }
+    }
+
+    fun decreaseFromCart(producto: Producto) {
+        // Alias de removeFromCart para claridad
+        removeFromCart(producto)
+    }
+
+    fun removeAllOfProduct(producto: Producto) {
+        // Elimina todas las unidades del producto en memoria
+        _cartItems.value = _cartItems.value.filter { it.id != producto.id }
+        // Borra del servidor
         val collection = getCartCollection() ?: return
         collection.document(producto.id).delete()
     }

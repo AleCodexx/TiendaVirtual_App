@@ -16,7 +16,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.tiendavirtualapp.model.Producto
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun ImagenProducto(
@@ -25,18 +28,21 @@ fun ImagenProducto(
     onBack: () -> Unit = {},
     onSearch: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(340.dp)
     ) {
         AsyncImage(
-            model = producto.imagenUrl,
+            model = producto.imagenUrl.takeIf { it.isNotBlank() } ?: null,
             contentDescription = producto.nombre,
             modifier = Modifier
                 .fillMaxSize()
                 .clip(MaterialTheme.shapes.medium),
-            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
+            error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
         )
 
         Row(

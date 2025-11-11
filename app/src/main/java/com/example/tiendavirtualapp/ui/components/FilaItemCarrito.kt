@@ -16,12 +16,9 @@ import androidx.compose.ui.draw.clip
 import com.example.tiendavirtualapp.model.Producto
 import com.example.tiendavirtualapp.util.formatPrice
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 
 @Composable
-fun CartItemRow(
+fun FilaItemCarrito(
     modifier: Modifier = Modifier,
     producto: Producto,
     cantidad: Int = 1,
@@ -86,25 +83,4 @@ fun CartItemRow(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CartItemRowPreview() {
-    val producto = Producto(
-        id = "p1",
-        nombre = "Camiseta de prueba",
-        precio = 49.99,
-        descripcion = "Una camiseta cómoda",
-        categoria = "Ropa",
-        imagenUrl = ""
-    )
-    val cantidadState = remember { mutableStateOf(2) }
-    CartItemRow(
-        producto = producto,
-        cantidad = cantidadState.value,
-        onIncrease = { cantidadState.value++ },
-        onDecrease = { if (cantidadState.value > 1) cantidadState.value-- },
-        onRemove = {}
-    )
 }
