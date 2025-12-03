@@ -30,6 +30,7 @@ import com.example.tiendavirtualapp.ui.PantallaDetallePedido
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
+import com.example.tiendavirtualapp.ui.PantallaCambioContrasena
 
 
 class MainActivity : ComponentActivity() {

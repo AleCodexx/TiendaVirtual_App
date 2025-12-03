@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 
@@ -137,6 +138,10 @@ fun PantallaPerfil(navController: NavController, cartViewModel: CartViewModel = 
                     ProfileOption(title = "Mis reseñas", icon = Icons.Default.Star) {
                         navController.navigate("my_reviews")
                     }
+
+                    //ProfileOption(title = "Cambiar contraseña", icon = Icons.Default.Password) {
+                        //navController.navigate("change_password")
+                    //}
 
                     Spacer(modifier = Modifier.height(12.dp))
 
